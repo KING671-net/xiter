@@ -1,0 +1,2828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WER XITERS - Pro Gaming Utility</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ====== RESET & BASE STYLES ====== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Rajdhani', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary-dark: #0a0a0f;
+            --secondary-dark: #111117;
+            --accent-red: #ff003c;
+            --accent-green: #00ff88;
+            --accent-blue: #0099ff;
+            --accent-glow: rgba(255, 0, 60, 0.7);
+            --accent-dim: rgba(255, 0, 60, 0.3);
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --glass-bg: rgba(20, 20, 25, 0.85);
+            --border-radius: 12px;
+            --transition-speed: 0.4s;
+        }
+
+        body {
+            background-color: var(--primary-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255, 0, 60, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 60, 0.05) 0%, transparent 20%);
+            overflow: hidden;
+            position: relative;
+            touch-action: manipulation;
+        }
+
+        /* ====== GRID BACKGROUND ====== */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 0, 60, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 0, 60, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.5;
+            z-index: -2;
+        }
+
+        /* ====== SCANLINE ANIMATION ====== */
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent 50%, rgba(255, 0, 60, 0.03) 50%);
+            background-size: 100% 4px;
+            z-index: -1;
+            animation: scan 8s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+
+        /* ====== MAIN CONTAINER ====== */
+        .main-container {
+            width: 100%;
+            max-width: 420px;
+            height: 820px;
+            position: relative;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 
+                0 0 0 1px rgba(255, 0, 60, 0.2),
+                0 10px 40px rgba(0, 0, 0, 0.9),
+                0 0 80px rgba(255, 0, 60, 0.15);
+            display: flex;
+            flex-direction: column;
+            background-color: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        /* ====== PHONE FRAME ====== */
+        .phone-frame {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            border-radius: 24px;
+            box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.9);
+        }
+
+        /* ====== CROSSHAIR OVERLAY ====== */
+        .crosshair-overlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 99999;
+            pointer-events: none;
+            display: none;
+            transition: all 0.3s ease;
+            will-change: transform;
+        }
+
+        .crosshair-overlay.active {
+            display: block;
+        }
+
+        .crosshair-overlay.draggable {
+            pointer-events: auto;
+            cursor: move;
+            touch-action: none;
+        }
+
+        /* ====== LOGIN SCREEN ====== */
+        #loginScreen {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 30px;
+            opacity: 1;
+            transition: opacity 0.8s ease;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: rgba(10, 10, 15, 0.95);
+            z-index: 10;
+        }
+
+        #loginScreen.hidden {
+            opacity: 0;
+            pointer-events: none;
+            display: none;
+        }
+
+        /* Logo container */
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .logo-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 25px;
+            margin-bottom: 20px;
+            border: 2px solid rgba(255, 0, 60, 0.3);
+            box-shadow: 0 0 30px rgba(255, 0, 60, 0.3);
+            position: relative;
+            background: linear-gradient(135deg, #000000, #1a1a1a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-image::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #ff003c, #ff6600, #ff003c);
+            border-radius: 26px;
+            z-index: -1;
+            animation: rotate 3s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .logo-image i {
+            font-size: 3.5rem;
+            color: var(--accent-red);
+            text-shadow: 0 0 20px var(--accent-red);
+        }
+
+        .app-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 800;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            background: linear-gradient(to right, #fff, var(--accent-red));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(255, 0, 60, 0.5);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .app-subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+            font-weight: 300;
+            line-height: 1.4;
+        }
+
+        /* Login form */
+        .login-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        .input-label {
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background-color: var(--primary-dark);
+            padding: 0 10px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            z-index: 2;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 18px 20px;
+            background-color: rgba(30, 30, 40, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+            backdrop-filter: blur(5px);
+            -webkit-appearance: none;
+        }
+
+        .input-field:focus {
+            border-color: var(--accent-red);
+            box-shadow: 0 0 20px rgba(255, 0, 60, 0.3);
+            background-color: rgba(40, 40, 50, 0.7);
+        }
+
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Login button */
+        .login-btn {
+            width: 100%;
+            padding: 18px 20px;
+            background: linear-gradient(135deg, #ff003c, #cc002f);
+            border: none;
+            border-radius: var(--border-radius);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-top: 10px;
+            -webkit-appearance: none;
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .login-btn:hover::before,
+        .login-btn:active::before {
+            left: 100%;
+        }
+
+        .login-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Security indicator */
+        .security-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .secure-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-red);
+            box-shadow: 0 0 10px var(--accent-red);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        /* Error message */
+        .error-message {
+            background-color: rgba(255, 0, 60, 0.1);
+            border: 1px solid rgba(255, 0, 60, 0.3);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-top: 20px;
+            color: #ff6b8b;
+            font-size: 0.9rem;
+            text-align: center;
+            display: none;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        /* Success message */
+        .success-message {
+            background-color: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-top: 20px;
+            color: #00ff88;
+            font-size: 0.9rem;
+            text-align: center;
+            display: none;
+        }
+
+        /* ====== CONTROL PANEL ====== */
+        #controlPanel {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        #controlPanel.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* Status bar */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px 10px;
+            background-color: rgba(10, 10, 15, 0.95);
+            border-bottom: 1px solid rgba(255, 0, 60, 0.3);
+            position: relative;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+            flex-shrink: 0;
+        }
+
+        .status-title {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 800;
+            font-size: 1.6rem;
+            letter-spacing: 1.5px;
+            background: linear-gradient(to right, #fff, var(--accent-red));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 15px var(--accent-dim);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-red);
+            box-shadow: 0 0 10px var(--accent-red);
+            animation: pulse 2s infinite;
+        }
+
+        /* Main content area */
+        .content-area {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Side menu */
+        .side-menu {
+            width: 70px;
+            background-color: rgba(10, 10, 15, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            border-right: 1px solid rgba(255, 0, 60, 0.2);
+            z-index: 5;
+            backdrop-filter: blur(5px);
+            flex-shrink: 0;
+        }
+
+        .menu-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            padding: 16px 0;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            user-select: none;
+        }
+
+        .menu-item.active {
+            color: var(--accent-red);
+        }
+
+        .menu-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 28px;
+            background-color: var(--accent-red);
+            border-radius: 0 4px 4px 0;
+            box-shadow: 0 0 15px var(--accent-red);
+            animation: glowPulse 1.5s infinite;
+        }
+
+        @keyframes glowPulse {
+            0% { box-shadow: 0 0 10px var(--accent-red); }
+            50% { box-shadow: 0 0 20px var(--accent-red); }
+            100% { box-shadow: 0 0 10px var(--accent-red); }
+        }
+
+        .menu-item i {
+            font-size: 1.3rem;
+            margin-bottom: 6px;
+            transition: transform 0.3s;
+        }
+
+        .menu-item span {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .menu-item:hover {
+            color: var(--text-primary);
+            transform: translateX(2px);
+        }
+
+        .menu-item:active {
+            transform: translateX(2px) scale(0.95);
+        }
+
+        /* Main panel */
+        .main-panel {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            position: relative;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Panel content */
+        .panel-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            opacity: 0;
+            transform: translateX(20px);
+            pointer-events: none;
+            transition: opacity var(--transition-speed), transform var(--transition-speed);
+            overflow-y: auto;
+            will-change: transform, opacity;
+        }
+
+        .panel-content.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
+            position: relative;
+        }
+
+        /* Panel title */
+        .panel-title {
+            font-size: 1.4rem;
+            margin-bottom: 25px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 0, 60, 0.2);
+        }
+
+        .panel-title i {
+            color: var(--accent-red);
+            background: rgba(255, 0, 60, 0.1);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(255, 0, 60, 0.3);
+        }
+
+        /* Button styling */
+        .btn {
+            background-color: rgba(30, 30, 40, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 14px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            user-select: none;
+            -webkit-appearance: none;
+            touch-action: manipulation;
+        }
+
+        .btn:hover {
+            border-color: rgba(255, 0, 60, 0.4);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn.active {
+            background-color: rgba(255, 0, 60, 0.15);
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+            box-shadow: 0 0 20px rgba(255, 0, 60, 0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff003c, #cc002f);
+            color: white;
+            border: none;
+            font-weight: 700;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #ff1a52, #d90032);
+            box-shadow: 0 0 20px rgba(255, 0, 60, 0.5);
+        }
+
+        /* Slider styling */
+        .slider-container {
+            margin-bottom: 25px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .slider-value {
+            color: var(--accent-red);
+            font-weight: 700;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .slider-track {
+            width: 100%;
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        .slider-fill {
+            height: 100%;
+            background: linear-gradient(90deg, rgba(255, 0, 60, 0.7), var(--accent-red));
+            border-radius: 4px;
+            position: relative;
+            box-shadow: 0 0 10px rgba(255, 0, 60, 0.5);
+            width: 50%;
+        }
+
+        .slider-knob {
+            position: absolute;
+            right: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            background-color: var(--accent-red);
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(255, 0, 60, 0.9);
+            cursor: grab;
+            touch-action: none;
+        }
+
+        .slider-knob:active {
+            cursor: grabbing;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        /* Toggle switch */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: rgba(30, 30, 40, 0.6);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+
+        .toggle-switch {
+            width: 50px;
+            height: 26px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .toggle-switch.active {
+            background-color: rgba(0, 255, 136, 0.3);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background-color: #666;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            background-color: var(--accent-green);
+            left: 27px;
+            box-shadow: 0 0 10px var(--accent-green);
+        }
+
+        /* Preset cards */
+        .preset-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .preset-card {
+            background-color: var(--glass-bg);
+            border-radius: var(--border-radius);
+            padding: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .preset-card:hover {
+            border-color: rgba(255, 0, 60, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .preset-card:active {
+            transform: translateY(-1px);
+        }
+
+        .preset-card.active {
+            border-color: var(--accent-red);
+            box-shadow: 0 0 25px rgba(255, 0, 60, 0.3);
+        }
+
+        .preset-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .preset-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .preset-badge {
+            background-color: rgba(255, 0, 60, 0.2);
+            color: var(--accent-red);
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        .preset-stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Crosshair styles */
+        .crosshair-styles {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .crosshair-style {
+            width: 70px;
+            height: 70px;
+            background-color: rgba(30, 30, 40, 0.6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            user-select: none;
+        }
+
+        .crosshair-style.active {
+            border-color: var(--accent-red);
+            box-shadow: 0 0 15px rgba(255, 0, 60, 0.4);
+        }
+
+        .crosshair-style:active {
+            transform: scale(0.95);
+        }
+
+        /* Color picker */
+        .color-picker {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .color-option.active {
+            border-color: white;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        .color-option:active {
+            transform: scale(0.95);
+        }
+
+        /* Crosshair preview */
+        .crosshair-preview {
+            background-color: rgba(10, 10, 15, 0.9);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid rgba(255, 0, 60, 0.2);
+            margin-top: 20px;
+            min-height: 250px;
+            justify-content: center;
+        }
+
+        .crosshair-display {
+            width: 220px;
+            height: 220px;
+            background-color: rgba(20, 20, 30, 0.9);
+            border-radius: 10px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 0, 60, 0.2);
+            overflow: hidden;
+        }
+
+        /* Account panel */
+        .account-card {
+            background-color: var(--glass-bg);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            text-align: center;
+            border: 1px solid rgba(255, 0, 60, 0.2);
+            margin-bottom: 25px;
+        }
+
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff003c, #cc002f);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 2rem;
+            box-shadow: 0 0 25px rgba(255, 0, 60, 0.5);
+        }
+
+        .subscription-badge {
+            display: inline-block;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        .badge-pro {
+            background: linear-gradient(135deg, #ff003c, #cc002f);
+            color: white;
+            box-shadow: 0 0 15px rgba(255, 0, 60, 0.5);
+        }
+
+        /* Action buttons */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .action-buttons .btn {
+            flex: 1;
+        }
+
+        /* Device info display */
+        .device-info {
+            background-color: var(--glass-bg);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 0, 60, 0.2);
+        }
+
+        .device-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .device-row:last-child {
+            border-bottom: none;
+        }
+
+        .device-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .device-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Scrollbar styling */
+        .main-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .main-panel::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .main-panel::-webkit-scrollbar-thumb {
+            background: var(--accent-red);
+            border-radius: 3px;
+        }
+
+        /* Loading animation */
+        .loader {
+            width: 50px;
+            height: 50px;
+            margin: 20px auto;
+            position: relative;
+            display: none;
+        }
+
+        .loader::before,
+        .loader::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: var(--accent-red);
+            animation: spin 1s linear infinite;
+        }
+
+        .loader::after {
+            border-top-color: transparent;
+            border-bottom-color: var(--accent-red);
+            animation: spin 0.5s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .main-container {
+                height: 780px;
+                max-width: 380px;
+            }
+            
+            .side-menu {
+                width: 60px;
+            }
+            
+            .menu-item {
+                padding: 14px 0;
+            }
+            
+            .panel-title {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Fix for iOS Safari */
+        @supports (-webkit-touch-callout: none) {
+            .main-container {
+                -webkit-backdrop-filter: blur(10px);
+            }
+            
+            .side-menu {
+                -webkit-backdrop-filter: blur(5px);
+            }
+            
+            .input-field {
+                -webkit-backdrop-filter: blur(5px);
+            }
+            
+            .login-btn:active,
+            .btn:active,
+            .crosshair-style:active,
+            .color-option:active {
+                opacity: 0.8;
+            }
+        }
+
+        /* Prevent text selection */
+        .no-select {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    <div class="scanline"></div>
+    
+    <!-- Crosshair Overlay -->
+    <div class="crosshair-overlay" id="crosshairOverlay">
+        <div id="liveCrosshair"></div>
+    </div>
+    
+    <!-- Main Container -->
+    <div class="main-container">
+        <div class="phone-frame"></div>
+        
+        <!-- ====== LOGIN SCREEN ====== -->
+        <div id="loginScreen">
+            <div class="logo-container">
+                <div class="logo-image">
+                    <i class="fas fa-gamepad"></i>
+                </div>
+                <h1 class="app-title">WER XITERS</h1>
+                <p class="app-subtitle">Professional Free Fire Control Panel</p>
+            </div>
+            
+            <form class="login-form" id="loginForm">
+                <div class="input-group">
+                    <div class="input-label">USERNAME</div>
+                    <input type="text" class="input-field" id="username" placeholder="Enter username" autocomplete="off" required>
+                </div>
+                
+                <div class="input-group">
+                    <div class="input-label">PASSWORD</div>
+                    <input type="password" class="input-field" id="password" placeholder="Enter password" autocomplete="off" required>
+                </div>
+                
+                <button type="submit" class="login-btn" id="loginButton">
+                    <span id="buttonText">LOGIN</span>
+                    <div class="loader" id="buttonLoader"></div>
+                </button>
+            </form>
+            
+            <div class="error-message" id="errorMessage">
+                Invalid Username or Password
+            </div>
+            
+            <div class="success-message" id="successMessage">
+                Login Successful! Redirecting...
+            </div>
+            
+            <div class="security-indicator">
+                <div class="secure-dot"></div>
+                <span>Secure Connection</span>
+            </div>
+        </div>
+        
+        <!-- ====== CONTROL PANEL ====== -->
+        <div id="controlPanel">
+            <div class="status-bar">
+                <div class="status-title">WER XITERS</div>
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span>ONLINE</span>
+                </div>
+            </div>
+            
+            <div class="content-area">
+                <!-- Side Menu -->
+                <div class="side-menu">
+                    <div class="menu-item active" data-panel="sensitivity">
+                        <i class="fas fa-bullseye"></i>
+                        <span>SENS</span>
+                    </div>
+                    <div class="menu-item" data-panel="dpi">
+                        <i class="fas fa-sliders-h"></i>
+                        <span>DPI</span>
+                    </div>
+                    <div class="menu-item" data-panel="crosshair">
+                        <i class="fas fa-crosshairs"></i>
+                        <span>CROSS</span>
+                    </div>
+                    <div class="menu-item" data-panel="boost">
+                        <i class="fas fa-rocket"></i>
+                        <span>BOOST</span>
+                    </div>
+                    <div class="menu-item" data-panel="presets">
+                        <i class="fas fa-cogs"></i>
+                        <span>PRESETS</span>
+                    </div>
+                    <div class="menu-item" data-panel="cloud">
+                        <i class="fas fa-cloud"></i>
+                        <span>CLOUD</span>
+                    </div>
+                    <div class="menu-item" data-panel="account">
+                        <i class="fas fa-user"></i>
+                        <span>ACC</span>
+                    </div>
+                </div>
+
+                <!-- Main Panel -->
+                <div class="main-panel">
+                    <!-- PANEL 1: SENSITIVITY -->
+                    <div class="panel-content active" id="sensitivity-panel">
+                        <div class="panel-title">
+                            <i class="fas fa-bullseye"></i>
+                            <span>SENSITIVITY CONTROL</span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 25px;">
+                            <div class="btn active" data-preset="low">LOW</div>
+                            <div class="btn" data-preset="balanced">BALANCED</div>
+                            <div class="btn" data-preset="pro">PRO</div>
+                            <div class="btn" data-preset="sniper">SNIPER</div>
+                        </div>
+
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>General Sensitivity</span>
+                                <span class="slider-value" id="sens-general-value">85</span>
+                            </div>
+                            <div class="slider-track" id="sens-general-slider">
+                                <div class="slider-fill" style="width: 85%">
+                                    <div class="slider-knob"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Red Dot</span>
+                                <span class="slider-value" id="sens-reddot-value">72</span>
+                            </div>
+                            <div class="slider-track" id="sens-reddot-slider">
+                                <div class="slider-fill" style="width: 72%">
+                                    <div class="slider-knob"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>2x Scope</span>
+                                <span class="slider-value" id="sens-2x-value">68</span>
+                            </div>
+                            <div class="slider-track" id="sens-2x-slider">
+                                <div class="slider-fill" style="width: 68%">
+                                    <div class="slider-knob"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>4x Scope</span>
+                                <span class="slider-value" id="sens-4x-value">65</span>
+                            </div>
+                            <div class="slider-track" id="sens-4x-slider">
+                                <div class="slider-fill" style="width: 65%">
+                                    <div class="slider-knob"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Sniper Scope</span>
+                                <span class="slider-value" id="sens-sniper-value">60</span>
+                            </div>
+                            <div class="slider-track" id="sens-sniper-slider">
+                                <div class="slider-fill" style="width: 60%">
+                                    <div class="slider-knob"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Free Look</span>
+                                <span class="slider-value" id="sens-freelook-value">90</span>
+                            </div>
+                            <div class="slider-track" id="sens-freelook-slider">
+                                <div class="slider-fill" style="width: 90%">
+                                    <div class="slider-knob"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <div class="btn btn-primary" id="save-sens-btn">
+                                <i class="fas fa-save"></i> SAVE
+                            </div>
+                            <div class="btn btn-primary" id="apply-sens-btn">
+                                <i class="fas fa-play"></i> APPLY
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 2: DPI & RESOLUTION -->
+                    <div class="panel-content" id="dpi-panel">
+                        <div class="panel-title">
+                            <i class="fas fa-sliders-h"></i>
+                            <span>DPI & RESOLUTION</span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 25px;">
+                            <div class="btn active" data-mode="normal">NORMAL</div>
+                            <div class="btn" data-mode="wide">WIDE VIEW</div>
+                            <div class="btn" data-mode="pro">PRO PLAYER</div>
+                            <div class="btn" data-mode="ultra">ULTRA WIDE</div>
+                        </div>
+
+                        <div style="background-color: var(--glass-bg); border-radius: var(--border-radius); padding: 20px; margin-bottom: 25px; border: 1px solid rgba(255,0,60,0.2); position: relative;">
+                            <div style="position: absolute; top: 10px; right: 10px; background: linear-gradient(45deg, #ff003c, #ff6600); color: white; font-size: 0.7rem; font-weight: 800; padding: 3px 10px; border-radius: 20px; letter-spacing: 1px;">PRO</div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <div style="font-size: 1.1rem; color: var(--text-primary);">CUSTOM DPI</div>
+                                <div style="color: var(--accent-red); font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">
+                                    <i class="fas fa-lock"></i>
+                                    <span>PREMIUM</span>
+                                </div>
+                            </div>
+
+                            <div class="slider-container">
+                                <div class="slider-label">
+                                    <span>DPI LEVEL</span>
+                                    <span class="slider-value" id="dpi-value">480</span>
+                                </div>
+                                <div class="slider-track" id="dpi-slider">
+                                    <div class="slider-fill" style="width: 60%">
+                                        <div class="slider-knob"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="slider-container">
+                                <div class="slider-label">
+                                    <span>SCREEN SCALE</span>
+                                    <span class="slider-value" id="scale-value">100%</span>
+                                </div>
+                                <div class="slider-track" id="scale-slider">
+                                    <div class="slider-fill" style="width: 80%">
+                                        <div class="slider-knob"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="crosshair-preview">
+                            <div style="font-size: 1rem; margin-bottom: 15px; color: var(--text-secondary); align-self: flex-start;">CROSSHAIR PREVIEW</div>
+                            <div class="crosshair-display" id="dpi-crosshair-preview">
+                                <div style="width: 40px; height: 40px; position: relative;">
+                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 6px; height: 6px; background-color: var(--accent-red); border-radius: 50%; box-shadow: 0 0 10px var(--accent-red);"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 3: CROSSHAIR -->
+                    <div class="panel-content" id="crosshair-panel">
+                        <div class="panel-title">
+                            <i class="fas fa-crosshairs"></i>
+                            <span>CROSSHAIR DESIGNER</span>
+                        </div>
+
+                        <div class="toggle-container">
+                            <div class="toggle-label">
+                                <i class="fas fa-eye"></i>
+                                <span>Show Crosshair Overlay</span>
+                            </div>
+                            <div class="toggle-switch" id="crosshair-toggle"></div>
+                        </div>
+
+                        <div class="toggle-container">
+                            <div class="toggle-label">
+                                <i class="fas fa-arrows-alt"></i>
+                                <span>Make Crosshair Draggable</span>
+                            </div>
+                            <div class="toggle-switch" id="draggable-toggle"></div>
+                        </div>
+
+                        <div class="crosshair-styles">
+                            <div class="crosshair-style active" data-style="dot">
+                                <div style="width: 10px; height: 10px; background-color: var(--accent-red); border-radius: 50%;"></div>
+                            </div>
+                            <div class="crosshair-style" data-style="cross">
+                                <div style="position: relative; width: 30px; height: 30px;">
+                                    <div style="position: absolute; top: 50%; left: 0; width: 30px; height: 2px; background-color: var(--accent-red); transform: translateY(-50%);"></div>
+                                    <div style="position: absolute; left: 50%; top: 0; width: 2px; height: 30px; background-color: var(--accent-red); transform: translateX(-50%);"></div>
+                                </div>
+                            </div>
+                            <div class="crosshair-style" data-style="x">
+                                <div style="position: relative; width: 25px; height: 25px; transform: rotate(45deg);">
+                                    <div style="position: absolute; top: 50%; left: 0; width: 25px; height: 2px; background-color: var(--accent-red); transform: translateY(-50%);"></div>
+                                    <div style="position: absolute; left: 50%; top: 0; width: 2px; height: 25px; background-color: var(--accent-red); transform: translateX(-50%);"></div>
+                                </div>
+                            </div>
+                            <div class="crosshair-style" data-style="circle">
+                                <div style="width: 25px; height: 25px; border: 2px solid var(--accent-red); border-radius: 50%; position: relative;">
+                                    <div style="position: absolute; top: 50%; left: 50%; width: 6px; height: 6px; background-color: var(--accent-red); border-radius: 50%; transform: translate(-50%, -50%);"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin: 25px 0;">
+                            <div class="slider-label">
+                                <span>Crosshair Color</span>
+                            </div>
+                            <div class="color-picker">
+                                <div class="color-option active" style="background-color: #ff003c;" data-color="red"></div>
+                                <div class="color-option" style="background-color: #00ff88;" data-color="green"></div>
+                                <div class="color-option" style="background-color: #ffffff;" data-color="white"></div>
+                            </div>
+                        </div>
+
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Size</span>
+                                <span class="slider-value" id="crosshair-size-value">12px</span>
+                            </div>
+                            <div class="slider-track" id="crosshair-size-slider">
+                                <div class="slider-fill" style="width: 40%">
+                                    <div class="slider-knob"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Opacity</span>
+                                <span class="slider-value" id="crosshair-opacity-value">85%</span>
+                            </div>
+                            <div class="slider-track" id="crosshair-opacity-slider">
+                                <div class="slider-fill" style="width: 85%">
+                                    <div class="slider-knob"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="crosshair-preview">
+                            <div style="font-size: 1rem; margin-bottom: 15px; color: var(--text-secondary); align-self: flex-start;">LIVE PREVIEW</div>
+                            <div class="crosshair-display" id="crosshair-live-preview">
+                                <!-- Dynamic crosshair will be rendered here -->
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <div class="btn btn-primary" id="save-crosshair-btn">
+                                <i class="fas fa-save"></i> SAVE
+                            </div>
+                            <div class="btn btn-primary" id="apply-crosshair-btn">
+                                <i class="fas fa-check"></i> APPLY
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 4: PERFORMANCE BOOST -->
+                    <div class="panel-content" id="boost-panel">
+                        <div class="panel-title">
+                            <i class="fas fa-rocket"></i>
+                            <span>PERFORMANCE BOOST</span>
+                        </div>
+
+                        <p style="color: var(--text-secondary); margin-bottom: 25px; line-height: 1.5;">
+                            Optimize your device for maximum gaming performance. Enable boosters to reduce lag and increase FPS.
+                        </p>
+
+                        <div class="toggle-container">
+                            <div class="toggle-label">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span>FPS Boost</span>
+                            </div>
+                            <div class="toggle-switch active" id="fps-boost-toggle"></div>
+                        </div>
+
+                        <div class="toggle-container">
+                            <div class="toggle-label">
+                                <i class="fas fa-memory"></i>
+                                <span>RAM Cleaner</span>
+                            </div>
+                            <div class="toggle-switch" id="ram-cleaner-toggle"></div>
+                        </div>
+
+                        <div class="toggle-container">
+                            <div class="toggle-label">
+                                <i class="fas fa-fingerprint"></i>
+                                <span>Touch Response</span>
+                            </div>
+                            <div class="toggle-switch active" id="touch-response-toggle"></div>
+                        </div>
+
+                        <div class="toggle-container">
+                            <div class="toggle-label">
+                                <i class="fas fa-thermometer-half"></i>
+                                <span>Thermal Control</span>
+                            </div>
+                            <div class="toggle-switch" id="thermal-control-toggle"></div>
+                        </div>
+
+                        <div style="background-color: var(--glass-bg); border-radius: var(--border-radius); padding: 20px; margin-top: 30px; border: 1px solid rgba(0,255,136,0.2);">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <div>
+                                    <div style="font-size: 0.9rem; color: var(--text-secondary);">Current Status</div>
+                                    <div style="font-size: 1.2rem; color: var(--accent-green); font-weight: 700; margin-top: 5px;">
+                                        <i class="fas fa-check-circle"></i> OPTIMIZED
+                                    </div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 0.9rem; color: var(--text-secondary);">Estimated FPS Gain</div>
+                                    <div style="font-size: 1.5rem; color: var(--text-primary); font-weight: 800; margin-top: 5px;">+12</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <div class="btn btn-primary" id="apply-boost-btn">
+                                <i class="fas fa-bolt"></i> APPLY BOOST
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 5: PRESETS -->
+                    <div class="panel-content" id="presets-panel">
+                        <div class="panel-title">
+                            <i class="fas fa-cogs"></i>
+                            <span>PRO PRESETS</span>
+                        </div>
+
+                        <p style="color: var(--text-secondary); margin-bottom: 25px; line-height: 1.5;">
+                            One-tap apply professional configurations used by top players.
+                        </p>
+
+                        <div class="preset-grid">
+                            <div class="preset-card active">
+                                <div class="preset-header">
+                                    <div class="preset-name">Pro Player</div>
+                                    <div class="preset-badge">RECOMMENDED</div>
+                                </div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Balanced for competitive play</div>
+                                <div class="preset-stats">
+                                    <div class="preset-stat">
+                                        <i class="fas fa-crosshairs"></i>
+                                        <span>DPI: 480</span>
+                                    </div>
+                                    <div class="preset-stat">
+                                        <i class="fas fa-bullseye"></i>
+                                        <span>Sens: 85</span>
+                                    </div>
+                                    <div class="preset-stat">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Cross: Dot</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="preset-card">
+                                <div class="preset-header">
+                                    <div class="preset-name">Sniper</div>
+                                </div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Precision aiming for long range</div>
+                                <div class="preset-stats">
+                                    <div class="preset-stat">
+                                        <i class="fas fa-crosshairs"></i>
+                                        <span>DPI: 420</span>
+                                    </div>
+                                    <div class="preset-stat">
+                                        <i class="fas fa-bullseye"></i>
+                                        <span>Sens: 65</span>
+                                    </div>
+                                    <div class="preset-stat">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Cross: Cross</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="preset-card">
+                                <div class="preset-header">
+                                    <div class="preset-name">Rush</div>
+                                </div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;">Aggressive close combat</div>
+                                <div class="preset-stats">
+                                    <div class="preset-stat">
+                                        <i class="fas fa-crosshairs"></i>
+                                        <span>DPI: 520</span>
+                                    </div>
+                                    <div class="preset-stat">
+                                        <i class="fas fa-bullseye"></i>
+                                        <span>Sens: 95</span>
+                                    </div>
+                                    <div class="preset-stat">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Cross: Dot</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <div class="btn btn-primary" id="apply-preset-btn">
+                                <i class="fas fa-play"></i> APPLY PRESET
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 6: CLOUD -->
+                    <div class="panel-content" id="cloud-panel">
+                        <div class="panel-title">
+                            <i class="fas fa-cloud"></i>
+                            <span>CLOUD PROFILES</span>
+                        </div>
+
+                        <p style="color: var(--text-secondary); margin-bottom: 25px; line-height: 1.5;">
+                            Sync your settings across devices and never lose your configurations.
+                        </p>
+
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 25px; padding: 15px; background-color: rgba(30,30,40,0.6); border-radius: var(--border-radius);">
+                            <div style="width: 12px; height: 12px; border-radius: 50%; background-color: var(--accent-green); box-shadow: 0 0 10px var(--accent-green);"></div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600;">Sync Status: <span style="color: var(--accent-green);">Synced</span></div>
+                                <div style="font-size: 0.9rem; color: var(--text-secondary);">All settings are up to date</div>
+                            </div>
+                        </div>
+
+                        <!-- Current Device Information -->
+                        <div class="device-info" id="currentDeviceInfo">
+                            <div style="font-weight: 600; margin-bottom: 15px; color: var(--accent-red);">
+                                <i class="fas fa-mobile-alt"></i> THIS DEVICE
+                            </div>
+                            <!-- Device info will be populated by JavaScript -->
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px;">
+                            <div class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 10px;" id="uploadCloudBtn">
+                                <i class="fas fa-upload"></i>
+                                <span>UPLOAD TO CLOUD</span>
+                            </div>
+                            <div class="btn" style="display: flex; align-items: center; justify-content: center; gap: 10px;" id="downloadCloudBtn">
+                                <i class="fas fa-download"></i>
+                                <span>DOWNLOAD FROM CLOUD</span>
+                            </div>
+                        </div>
+
+                        <div style="background-color: var(--glass-bg); border-radius: var(--border-radius); padding: 20px; margin-bottom: 25px; border: 1px solid rgba(255,0,60,0.2);">
+                            <div style="font-weight: 600; margin-bottom: 10px;">Last Backup</div>
+                            <div style="font-size: 1.2rem; color: var(--text-primary); margin-bottom: 5px;">
+                                <i class="fas fa-calendar-check" style="color: var(--accent-red); margin-right: 10px;"></i>
+                                <span id="lastBackupDate">Loading...</span>
+                            </div>
+                            <div style="font-size: 0.9rem; color: var(--text-secondary);">
+                                <span id="profileCount">0</span> profiles backed up | <span id="storageUsed">0</span> MB used
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 10px;">
+                            <div style="font-weight: 600; margin-bottom: 15px;">Synced Devices</div>
+                            <div id="syncedDevicesList">
+                                <!-- Synced devices will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 7: ACCOUNT -->
+                    <div class="panel-content" id="account-panel">
+                        <div class="panel-title">
+                            <i class="fas fa-user"></i>
+                            <span>ACCOUNT</span>
+                        </div>
+
+                        <div class="account-card">
+                            <div class="user-avatar">
+                                <i class="fas fa-gamepad"></i>
+                            </div>
+                            <div style="font-size: 1.4rem; margin-bottom: 10px; color: var(--text-primary);" id="userDisplayName">USER_01</div>
+                            <div class="subscription-badge badge-pro">PRO SUBSCRIPTION</div>
+                            <div style="color: var(--text-secondary); margin-bottom: 20px;">
+                                <i class="fas fa-crown" style="color: gold; margin-right: 8px;"></i>
+                                Premium features unlocked
+                            </div>
+                        </div>
+
+                        <div style="background-color: rgba(30, 30, 40, 0.6); border-radius: var(--border-radius); padding: 15px; margin-bottom: 20px; font-size: 0.9rem; color: var(--text-secondary);">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span>Device ID:</span>
+                                <span style="color: var(--text-primary); font-family: monospace;" id="deviceIdDisplay">Loading...</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span>App Version:</span>
+                                <span style="color: var(--text-primary);">2.5.1</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span>Subscription End:</span>
+                                <span style="color: var(--accent-red);" id="subscriptionEnd">2024-12-31</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Total Playtime:</span>
+                                <span style="color: var(--accent-green);" id="totalPlaytime">0h 0m</span>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 20px;">
+                            <div class="btn" style="display: flex; align-items: center; justify-content: center; gap: 10px;" id="editProfileBtn">
+                                <i class="fas fa-user-edit"></i>
+                                <span>EDIT PROFILE</span>
+                            </div>
+                            <div class="btn" style="display: flex; align-items: center; justify-content: center; gap: 10px;" id="privacySettingsBtn">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>PRIVACY SETTINGS</span>
+                            </div>
+                            <div class="btn" style="display: flex; align-items: center; justify-content: center; gap: 10px;" id="helpSupportBtn">
+                                <i class="fas fa-question-circle"></i>
+                                <span>HELP & SUPPORT</span>
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <div class="btn btn-primary" id="logout-btn" style="background: linear-gradient(135deg, #333, #111);">
+                                <i class="fas fa-sign-out-alt"></i> LOGOUT
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ====== FIXED VERSION - ALL BUGS RESOLVED ======
+        
+        // ====== GLOBAL STATE & CONFIGURATION ======
+        const APP_CONFIG = {
+            appName: 'WER XITERS',
+            version: '2.5.1',
+            sessionTimeout: 24 * 60 * 60 * 1000,
+            validCredentials: {
+                username: 'werxiters',
+                password: 'werv1'
+            }
+        };
+
+        // ====== SESSION MANAGEMENT ======
+        class SessionManager {
+            constructor() {
+                this.sessionKey = 'werXitersSession';
+                this.devicesKey = 'werXitersDevices';
+            }
+
+            validateSession() {
+                try {
+                    const session = this.getSession();
+                    if (!session) return false;
+                    
+                    const now = Date.now();
+                    if (now - session.loginTime > APP_CONFIG.sessionTimeout) {
+                        this.clearSession();
+                        return false;
+                    }
+                    
+                    return true;
+                } catch (e) {
+                    console.error('Session validation error:', e);
+                    return false;
+                }
+            }
+
+            createSession(username) {
+                try {
+                    const session = {
+                        username: username,
+                        loginTime: Date.now(),
+                        sessionId: this.generateSessionId(),
+                        deviceFingerprint: this.generateDeviceFingerprint()
+                    };
+                    
+                    localStorage.setItem(this.sessionKey, JSON.stringify(session));
+                    this.addDeviceToHistory(session.deviceFingerprint);
+                    
+                    return session;
+                } catch (e) {
+                    console.error('Session creation error:', e);
+                    return null;
+                }
+            }
+
+            getSession() {
+                try {
+                    const sessionData = localStorage.getItem(this.sessionKey);
+                    return sessionData ? JSON.parse(sessionData) : null;
+                } catch (e) {
+                    console.error('Get session error:', e);
+                    return null;
+                }
+            }
+
+            clearSession() {
+                localStorage.removeItem(this.sessionKey);
+            }
+
+            generateSessionId() {
+                return 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now().toString(36);
+            }
+
+            generateDeviceFingerprint() {
+                try {
+                    const userAgent = navigator.userAgent || '';
+                    const platform = navigator.platform || '';
+                    const pixelRatio = window.devicePixelRatio || 1;
+                    const screenRes = `${screen.width || 0}x${screen.height || 0}`;
+                    const language = navigator.language || '';
+                    
+                    const fingerprintString = `${userAgent}|${platform}|${pixelRatio}|${screenRes}|${language}`;
+                    let hash = 0;
+                    
+                    for (let i = 0; i < fingerprintString.length; i++) {
+                        const char = fingerprintString.charCodeAt(i);
+                        hash = ((hash << 5) - hash) + char;
+                        hash = hash & hash;
+                    }
+                    
+                    return 'device_' + Math.abs(hash).toString(16);
+                } catch (e) {
+                    return 'device_' + Date.now().toString(36);
+                }
+            }
+
+            addDeviceToHistory(fingerprint) {
+                try {
+                    let devices = this.getDevices();
+                    const deviceInfo = this.detectDeviceInfo();
+                    
+                    deviceInfo.fingerprint = fingerprint;
+                    deviceInfo.lastSync = new Date().toISOString();
+                    deviceInfo.isCurrent = true;
+                    
+                    // Remove existing device with same fingerprint
+                    devices = devices.filter(device => device.fingerprint !== fingerprint);
+                    
+                    // Add new device
+                    devices.push(deviceInfo);
+                    
+                    // Mark other devices as not current
+                    devices.forEach(device => {
+                        if (device.fingerprint !== fingerprint) {
+                            device.isCurrent = false;
+                        }
+                    });
+                    
+                    localStorage.setItem(this.devicesKey, JSON.stringify(devices));
+                    return devices;
+                } catch (e) {
+                    console.error('Add device error:', e);
+                    return [];
+                }
+            }
+
+            getDevices() {
+                try {
+                    const devicesData = localStorage.getItem(this.devicesKey);
+                    return devicesData ? JSON.parse(devicesData) : [];
+                } catch (e) {
+                    console.error('Get devices error:', e);
+                    return [];
+                }
+            }
+
+            detectDeviceInfo() {
+                try {
+                    const userAgent = navigator.userAgent || '';
+                    let brand = 'Unknown';
+                    let model = 'Unknown';
+                    let os = 'Unknown';
+                    
+                    // Simple device detection
+                    if (/samsung/i.test(userAgent)) brand = 'Samsung';
+                    else if (/xiaomi|redmi|mi\s/i.test(userAgent)) brand = 'Xiaomi';
+                    else if (/oppo/i.test(userAgent)) brand = 'OPPO';
+                    else if (/vivo/i.test(userAgent)) brand = 'Vivo';
+                    else if (/huawei|honor/i.test(userAgent)) brand = 'Huawei';
+                    else if (/iphone/i.test(userAgent)) { brand = 'Apple'; model = 'iPhone'; }
+                    else if (/ipad/i.test(userAgent)) { brand = 'Apple'; model = 'iPad'; }
+                    else if (/android/i.test(userAgent)) brand = 'Android';
+                    
+                    // OS detection
+                    if (/android/i.test(userAgent)) {
+                        const match = userAgent.match(/android\s([0-9.]+)/i);
+                        os = match ? `Android ${match[1]}` : 'Android';
+                    } else if (/iphone|ipad/i.test(userAgent)) {
+                        const match = userAgent.match(/os\s([0-9_]+)/i);
+                        os = match ? `iOS ${match[1].replace('_', '.')}` : 'iOS';
+                    }
+                    
+                    // Browser detection
+                    let browser = 'Unknown';
+                    if (/chrome/i.test(userAgent) && !/edg/i.test(userAgent)) browser = 'Chrome';
+                    else if (/firefox/i.test(userAgent)) browser = 'Firefox';
+                    else if (/safari/i.test(userAgent) && !/chrome/i.test(userAgent)) browser = 'Safari';
+                    else if (/edg/i.test(userAgent)) browser = 'Edge';
+                    
+                    return {
+                        brand: brand,
+                        model: model,
+                        os: os,
+                        browser: browser,
+                        screen: `${screen.width || 0}x${screen.height || 0}`,
+                        pixelRatio: window.devicePixelRatio || 1,
+                        userAgent: userAgent.substring(0, 50) + '...'
+                    };
+                } catch (e) {
+                    return {
+                        brand: 'Unknown',
+                        model: 'Unknown',
+                        os: 'Unknown',
+                        browser: 'Unknown',
+                        screen: '0x0',
+                        pixelRatio: 1,
+                        userAgent: 'Unknown'
+                    };
+                }
+            }
+        }
+
+        // ====== CROSSHAIR OVERLAY SYSTEM ======
+        class CrosshairOverlay {
+            constructor() {
+                this.overlay = document.getElementById('crosshairOverlay');
+                this.liveCrosshair = document.getElementById('liveCrosshair');
+                this.isDragging = false;
+                this.dragOffset = { x: 0, y: 0 };
+                this.currentPosition = { 
+                    x: window.innerWidth / 2, 
+                    y: window.innerHeight / 2 
+                };
+                this.init();
+            }
+
+            init() {
+                this.updatePosition(this.currentPosition.x, this.currentPosition.y);
+                
+                // Mouse events
+                this.overlay.addEventListener('mousedown', this.startDrag.bind(this));
+                document.addEventListener('mousemove', this.drag.bind(this));
+                document.addEventListener('mouseup', this.stopDrag.bind(this));
+                
+                // Touch events
+                this.overlay.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    if (e.touches.length === 1) {
+                        this.startDrag(e.touches[0]);
+                    }
+                }, { passive: false });
+                
+                document.addEventListener('touchmove', (e) => {
+                    if (e.touches.length === 1) {
+                        e.preventDefault();
+                        this.drag(e.touches[0]);
+                    }
+                }, { passive: false });
+                
+                document.addEventListener('touchend', this.stopDrag.bind(this));
+                
+                // Handle window resize
+                window.addEventListener('resize', this.handleResize.bind(this));
+            }
+
+            startDrag(e) {
+                if (!this.overlay.classList.contains('draggable')) return;
+                
+                this.isDragging = true;
+                const clientX = e.clientX || e.pageX;
+                const clientY = e.clientY || e.pageY;
+                
+                const rect = this.overlay.getBoundingClientRect();
+                this.dragOffset.x = clientX - rect.left;
+                this.dragOffset.y = clientY - rect.top;
+                
+                this.overlay.style.transition = 'none';
+            }
+
+            drag(e) {
+                if (!this.isDragging) return;
+                
+                const clientX = e.clientX || e.pageX;
+                const clientY = e.clientY || e.pageY;
+                
+                this.currentPosition.x = clientX - this.dragOffset.x;
+                this.currentPosition.y = clientY - this.dragOffset.y;
+                
+                this.updatePosition(this.currentPosition.x, this.currentPosition.y);
+            }
+
+            stopDrag() {
+                this.isDragging = false;
+                this.overlay.style.transition = 'all 0.3s ease';
+            }
+
+            updatePosition(x, y) {
+                // Keep within bounds
+                x = Math.max(0, Math.min(x, window.innerWidth - 100));
+                y = Math.max(0, Math.min(y, window.innerHeight - 100));
+                
+                this.overlay.style.left = x + 'px';
+                this.overlay.style.top = y + 'px';
+            }
+
+            handleResize() {
+                this.updatePosition(this.currentPosition.x, this.currentPosition.y);
+            }
+
+            show() {
+                this.overlay.classList.add('active');
+                this.updateStyle(); // Update to current settings
+            }
+
+            hide() {
+                this.overlay.classList.remove('active');
+            }
+
+            toggle() {
+                if (this.overlay.classList.contains('active')) {
+                    this.hide();
+                } else {
+                    this.show();
+                }
+            }
+
+            setDraggable(draggable) {
+                if (draggable) {
+                    this.overlay.classList.add('draggable');
+                } else {
+                    this.overlay.classList.remove('draggable');
+                }
+            }
+
+            updateStyle() {
+                const activeStyle = document.querySelector('.crosshair-style.active');
+                const style = activeStyle ? activeStyle.getAttribute('data-style') : 'dot';
+                
+                const activeColor = document.querySelector('.color-option.active');
+                const color = activeColor ? activeColor.getAttribute('data-color') : 'red';
+                
+                const sizeValue = document.getElementById('crosshair-size-value')?.textContent || '12px';
+                const opacityValue = document.getElementById('crosshair-opacity-value')?.textContent || '85%';
+                
+                const sizeNum = parseInt(sizeValue) || 12;
+                const opacityNum = (parseInt(opacityValue) || 85) / 100;
+                
+                const colorMap = {
+                    red: '#ff003c',
+                    green: '#00ff88',
+                    white: '#ffffff'
+                };
+                
+                const colorHex = colorMap[color] || '#ff003c';
+                
+                this.liveCrosshair.innerHTML = '';
+                let crosshairHTML = '';
+                
+                switch(style) {
+                    case 'dot':
+                        crosshairHTML = `
+                            <div style="width: ${sizeNum}px; height: ${sizeNum}px; background-color: ${colorHex}; 
+                                border-radius: 50%; opacity: ${opacityNum}; box-shadow: 0 0 15px ${colorHex};">
+                            </div>
+                        `;
+                        break;
+                        
+                    case 'cross':
+                        crosshairHTML = `
+                            <div style="position: relative; width: ${sizeNum * 3}px; height: ${sizeNum * 3}px; opacity: ${opacityNum};">
+                                <div style="position: absolute; top: 50%; left: 0; width: 100%; height: ${Math.max(2, sizeNum/6)}px; 
+                                    background-color: ${colorHex}; transform: translateY(-50%); box-shadow: 0 0 10px ${colorHex};">
+                                </div>
+                                <div style="position: absolute; left: 50%; top: 0; width: ${Math.max(2, sizeNum/6)}px; height: 100%; 
+                                    background-color: ${colorHex}; transform: translateX(-50%); box-shadow: 0 0 10px ${colorHex};">
+                                </div>
+                            </div>
+                        `;
+                        break;
+                        
+                    case 'x':
+                        crosshairHTML = `
+                            <div style="position: relative; width: ${sizeNum * 3}px; height: ${sizeNum * 3}px; 
+                                transform: rotate(45deg); opacity: ${opacityNum};">
+                                <div style="position: absolute; top: 50%; left: 0; width: 100%; height: ${Math.max(2, sizeNum/6)}px; 
+                                    background-color: ${colorHex}; transform: translateY(-50%); box-shadow: 0 0 10px ${colorHex};">
+                                </div>
+                                <div style="position: absolute; left: 50%; top: 0; width: ${Math.max(2, sizeNum/6)}px; height: 100%; 
+                                    background-color: ${colorHex}; transform: translateX(-50%); box-shadow: 0 0 10px ${colorHex};">
+                                </div>
+                            </div>
+                        `;
+                        break;
+                        
+                    case 'circle':
+                        crosshairHTML = `
+                            <div style="position: relative; width: ${sizeNum * 3}px; height: ${sizeNum * 3}px; opacity: ${opacityNum};">
+                                <div style="width: 100%; height: 100%; border: ${Math.max(2, sizeNum/6)}px solid ${colorHex}; 
+                                    border-radius: 50%; box-shadow: 0 0 15px ${colorHex};">
+                                </div>
+                            </div>
+                        `;
+                        break;
+                }
+                
+                this.liveCrosshair.innerHTML = crosshairHTML;
+                this.updatePanelPreview(style, color, sizeNum, opacityNum, colorHex);
+            }
+
+            updatePanelPreview(style, color, size, opacity, colorHex) {
+                const preview = document.getElementById('crosshair-live-preview');
+                if (!preview) return;
+                
+                preview.innerHTML = this.liveCrosshair.innerHTML;
+            }
+        }
+
+        // ====== APPLICATION CORE ======
+        class WERXitersApp {
+            constructor() {
+                this.sessionManager = new SessionManager();
+                this.crosshairOverlay = null;
+                this.currentUser = null;
+                this.isInitialized = false;
+                
+                this.DOM = {
+                    loginScreen: document.getElementById('loginScreen'),
+                    controlPanel: document.getElementById('controlPanel'),
+                    loginForm: document.getElementById('loginForm'),
+                    usernameInput: document.getElementById('username'),
+                    passwordInput: document.getElementById('password'),
+                    loginButton: document.getElementById('loginButton'),
+                    buttonText: document.getElementById('buttonText'),
+                    buttonLoader: document.getElementById('buttonLoader'),
+                    errorMessage: document.getElementById('errorMessage'),
+                    successMessage: document.getElementById('successMessage'),
+                    logoutBtn: document.getElementById('logout-btn')
+                };
+                
+                this.init();
+            }
+
+            init() {
+                if (this.isInitialized) return;
+                
+                // Check existing session
+                if (this.sessionManager.validateSession()) {
+                    const session = this.sessionManager.getSession();
+                    if (session) {
+                        this.currentUser = session.username;
+                        this.showControlPanel();
+                    } else {
+                        this.showLoginScreen();
+                    }
+                } else {
+                    this.showLoginScreen();
+                }
+                
+                // Initialize components
+                this.initEventListeners();
+                this.crosshairOverlay = new CrosshairOverlay();
+                this.initGlitchEffect();
+                
+                this.isInitialized = true;
+            }
+
+            initEventListeners() {
+                // Login form
+                this.DOM.loginForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleLogin();
+                });
+                
+                // Logout button
+                this.DOM.logoutBtn.addEventListener('click', () => {
+                    this.handleLogout();
+                });
+                
+                // Menu navigation
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        this.handleMenuClick(item);
+                    });
+                });
+                
+                // Crosshair toggle
+                const crosshairToggle = document.getElementById('crosshair-toggle');
+                if (crosshairToggle) {
+                    crosshairToggle.addEventListener('click', () => {
+                        crosshairToggle.classList.toggle('active');
+                        if (crosshairToggle.classList.contains('active')) {
+                            this.crosshairOverlay.show();
+                        } else {
+                            this.crosshairOverlay.hide();
+                        }
+                    });
+                }
+                
+                // Draggable toggle
+                const draggableToggle = document.getElementById('draggable-toggle');
+                if (draggableToggle) {
+                    draggableToggle.addEventListener('click', () => {
+                        draggableToggle.classList.toggle('active');
+                        this.crosshairOverlay.setDraggable(draggableToggle.classList.contains('active'));
+                    });
+                }
+                
+                // Crosshair style selection
+                document.querySelectorAll('.crosshair-style').forEach(style => {
+                    style.addEventListener('click', () => {
+                        document.querySelectorAll('.crosshair-style').forEach(s => s.classList.remove('active'));
+                        style.classList.add('active');
+                        this.updateCrosshair();
+                    });
+                });
+                
+                // Color picker
+                document.querySelectorAll('.color-option').forEach(color => {
+                    color.addEventListener('click', () => {
+                        document.querySelectorAll('.color-option').forEach(c => c.classList.remove('active'));
+                        color.classList.add('active');
+                        this.updateCrosshair();
+                    });
+                });
+                
+                // Sliders
+                this.initSliders();
+                
+                // Toggles
+                this.initToggles();
+                
+                // Buttons
+                this.initButtons();
+                
+                // Prevent default touch behaviors
+                document.addEventListener('touchstart', (e) => {
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') {
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+            }
+
+            initSliders() {
+                document.querySelectorAll('.slider-track').forEach(slider => {
+                    const knob = slider.querySelector('.slider-knob');
+                    const fill = slider.querySelector('.slider-fill');
+                    const valueElement = slider.parentElement.querySelector('.slider-value');
+                    
+                    let isDragging = false;
+                    
+                    const startDrag = (e) => {
+                        isDragging = true;
+                        document.addEventListener('mousemove', onDrag);
+                        document.addEventListener('touchmove', onTouchDrag, { passive: false });
+                        document.addEventListener('mouseup', stopDrag);
+                        document.addEventListener('touchend', stopDrag);
+                        knob.style.cursor = 'grabbing';
+                    };
+                    
+                    const onDrag = (e) => {
+                        if (!isDragging) return;
+                        updateValueFromPosition(e.clientX);
+                    };
+                    
+                    const onTouchDrag = (e) => {
+                        if (!isDragging) return;
+                        e.preventDefault();
+                        updateValueFromPosition(e.touches[0].clientX);
+                    };
+                    
+                    const stopDrag = () => {
+                        isDragging = false;
+                        document.removeEventListener('mousemove', onDrag);
+                        document.removeEventListener('touchmove', onTouchDrag);
+                        document.removeEventListener('mouseup', stopDrag);
+                        document.removeEventListener('touchend', stopDrag);
+                        knob.style.cursor = 'grab';
+                    };
+                    
+                    const updateValueFromPosition = (clientX) => {
+                        const rect = slider.getBoundingClientRect();
+                        let position = (clientX - rect.left) / rect.width;
+                        position = Math.max(0, Math.min(1, position));
+                        
+                        fill.style.width = (position * 100) + '%';
+                        knob.style.right = (100 - position * 100) + '%';
+                        
+                        if (valueElement) {
+                            const sliderId = slider.id;
+                            let value;
+                            
+                            if (sliderId.includes('dpi')) {
+                                value = Math.round(200 + position * 600);
+                                valueElement.textContent = value;
+                            } else if (sliderId.includes('scale')) {
+                                value = Math.round(50 + position * 100);
+                                valueElement.textContent = value + '%';
+                            } else if (sliderId.includes('sens')) {
+                                value = Math.round(10 + position * 90);
+                                valueElement.textContent = value;
+                            } else if (sliderId.includes('size')) {
+                                value = Math.round(5 + position * 25);
+                                valueElement.textContent = value + 'px';
+                                this.updateCrosshair();
+                            } else if (sliderId.includes('opacity')) {
+                                value = Math.round(20 + position * 80);
+                                valueElement.textContent = value + '%';
+                                this.updateCrosshair();
+                            }
+                        }
+                    };
+                    
+                    // Mouse events
+                    knob.addEventListener('mousedown', startDrag);
+                    slider.addEventListener('mousedown', (e) => {
+                        if (e.target === slider) {
+                            startDrag(e);
+                            updateValueFromPosition(e.clientX);
+                        }
+                    });
+                    
+                    // Touch events
+                    knob.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        startDrag(e.touches[0]);
+                    }, { passive: false });
+                    
+                    slider.addEventListener('touchstart', (e) => {
+                        if (e.target === slider) {
+                            e.preventDefault();
+                            startDrag(e.touches[0]);
+                            updateValueFromPosition(e.touches[0].clientX);
+                        }
+                    }, { passive: false });
+                });
+            }
+
+            initToggles() {
+                document.querySelectorAll('.toggle-switch').forEach(toggle => {
+                    toggle.addEventListener('click', () => {
+                        toggle.classList.toggle('active');
+                    });
+                });
+            }
+
+            initButtons() {
+                // Sensitivity presets
+                document.querySelectorAll('[data-preset]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('[data-preset]').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.updateSensitivityPreset(btn.getAttribute('data-preset'));
+                    });
+                });
+                
+                // DPI modes
+                document.querySelectorAll('[data-mode]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        
+                        const mode = btn.getAttribute('data-mode');
+                        let dpiValue = 480;
+                        
+                        switch(mode) {
+                            case 'wide': dpiValue = 520; break;
+                            case 'pro': dpiValue = 600; break;
+                            case 'ultra': dpiValue = 560; break;
+                            default: dpiValue = 480;
+                        }
+                        
+                        const dpiElement = document.getElementById('dpi-value');
+                        if (dpiElement) dpiElement.textContent = dpiValue;
+                    });
+                });
+                
+                // Preset cards
+                document.querySelectorAll('.preset-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
+                        card.classList.add('active');
+                    });
+                });
+                
+                // Cloud buttons
+                document.getElementById('uploadCloudBtn')?.addEventListener('click', () => {
+                    this.uploadToCloud();
+                });
+                
+                document.getElementById('downloadCloudBtn')?.addEventListener('click', () => {
+                    this.downloadFromCloud();
+                });
+                
+                // Account buttons
+                document.getElementById('editProfileBtn')?.addEventListener('click', () => {
+                    this.showNotification('Profile editing feature coming soon');
+                });
+                
+                document.getElementById('privacySettingsBtn')?.addEventListener('click', () => {
+                    this.showNotification('Privacy settings feature coming soon');
+                });
+                
+                document.getElementById('helpSupportBtn')?.addEventListener('click', () => {
+                    this.showNotification('Help & support feature coming soon');
+                });
+                
+                // Apply buttons
+                document.getElementById('apply-sens-btn')?.addEventListener('click', () => {
+                    this.showNotification('Sensitivity settings applied!');
+                });
+                
+                document.getElementById('apply-boost-btn')?.addEventListener('click', () => {
+                    this.showNotification('Performance boost activated!');
+                });
+                
+                document.getElementById('apply-preset-btn')?.addEventListener('click', () => {
+                    this.showNotification('Preset applied successfully!');
+                });
+                
+                document.getElementById('apply-crosshair-btn')?.addEventListener('click', () => {
+                    this.showNotification('Crosshair settings saved!');
+                });
+                
+                document.getElementById('save-sens-btn')?.addEventListener('click', () => {
+                    this.showNotification('Sensitivity settings saved!');
+                });
+                
+                document.getElementById('save-crosshair-btn')?.addEventListener('click', () => {
+                    this.showNotification('Crosshair settings saved!');
+                });
+            }
+
+            handleLogin() {
+                const username = this.DOM.usernameInput.value.trim();
+                const password = this.DOM.passwordInput.value.trim();
+                
+                // Validate inputs
+                if (!username || !password) {
+                    this.showLoginError('Please enter username and password');
+                    return;
+                }
+                
+                // Show loading state
+                this.DOM.buttonText.style.display = 'none';
+                this.DOM.buttonLoader.style.display = 'block';
+                this.DOM.loginButton.disabled = true;
+                this.DOM.errorMessage.style.display = 'none';
+                this.DOM.successMessage.style.display = 'none';
+                
+                // Simulate authentication delay
+                setTimeout(() => {
+                    if (username === APP_CONFIG.validCredentials.username && 
+                        password === APP_CONFIG.validCredentials.password) {
+                        
+                        // Create session
+                        const session = this.sessionManager.createSession(username);
+                        if (session) {
+                            this.currentUser = username;
+                            this.DOM.successMessage.style.display = 'block';
+                            
+                            setTimeout(() => {
+                                this.showControlPanel();
+                            }, 800);
+                        } else {
+                            this.showLoginError('Failed to create session');
+                        }
+                        
+                    } else {
+                        this.showLoginError('Invalid username or password');
+                    }
+                }, 800);
+            }
+
+            showLoginError(message) {
+                this.DOM.buttonText.style.display = 'block';
+                this.DOM.buttonLoader.style.display = 'none';
+                this.DOM.loginButton.disabled = false;
+                
+                this.DOM.errorMessage.textContent = message;
+                this.DOM.errorMessage.style.display = 'block';
+                this.DOM.errorMessage.style.animation = 'none';
+                
+                setTimeout(() => {
+                    this.DOM.errorMessage.style.animation = 'shake 0.5s ease-in-out';
+                }, 10);
+                
+                this.DOM.passwordInput.value = '';
+                this.DOM.passwordInput.focus();
+            }
+
+            handleLogout() {
+                this.sessionManager.clearSession();
+                this.crosshairOverlay.hide();
+                
+                // Fade out control panel
+                this.DOM.controlPanel.classList.remove('active');
+                
+                setTimeout(() => {
+                    this.DOM.controlPanel.style.display = 'none';
+                    this.DOM.loginScreen.style.display = 'flex';
+                    
+                    setTimeout(() => {
+                        this.DOM.loginScreen.classList.remove('hidden');
+                        this.DOM.loginForm.reset();
+                        this.DOM.errorMessage.style.display = 'none';
+                        this.DOM.successMessage.style.display = 'none';
+                        this.DOM.buttonText.style.display = 'block';
+                        this.DOM.buttonLoader.style.display = 'none';
+                        this.DOM.loginButton.disabled = false;
+                    }, 50);
+                }, 500);
+            }
+
+            showLoginScreen() {
+                this.DOM.loginScreen.style.display = 'flex';
+                this.DOM.controlPanel.style.display = 'none';
+                setTimeout(() => {
+                    this.DOM.loginScreen.classList.remove('hidden');
+                }, 50);
+            }
+
+            showControlPanel() {
+                this.DOM.loginScreen.classList.add('hidden');
+                
+                setTimeout(() => {
+                    this.DOM.loginScreen.style.display = 'none';
+                    this.DOM.controlPanel.style.display = 'flex';
+                    
+                    setTimeout(() => {
+                        this.DOM.controlPanel.classList.add('active');
+                        this.updateUserInterface();
+                        this.loadDeviceInfo();
+                    }, 50);
+                }, 500);
+            }
+
+            handleMenuClick(menuItem) {
+                // Update active menu
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                menuItem.classList.add('active');
+                
+                // Show corresponding panel
+                const panelId = menuItem.getAttribute('data-panel') + '-panel';
+                document.querySelectorAll('.panel-content').forEach(panel => {
+                    panel.classList.remove('active');
+                });
+                
+                const targetPanel = document.getElementById(panelId);
+                if (targetPanel) {
+                    targetPanel.classList.add('active');
+                    
+                    // Special handling for crosshair panel
+                    if (panelId === 'crosshair-panel') {
+                        this.updateCrosshair();
+                    }
+                    
+                    // Special handling for cloud panel
+                    if (panelId === 'cloud-panel') {
+                        this.loadDeviceInfo();
+                    }
+                }
+            }
+
+            updateCrosshair() {
+                if (this.crosshairOverlay) {
+                    this.crosshairOverlay.updateStyle();
+                }
+            }
+
+            updateSensitivityPreset(preset) {
+                const values = {
+                    low: { general: 60, reddot: 55, scope2x: 50, scope4x: 45, sniper: 40, freelook: 70 },
+                    balanced: { general: 85, reddot: 72, scope2x: 68, scope4x: 65, sniper: 60, freelook: 90 },
+                    pro: { general: 95, reddot: 85, scope2x: 80, scope4x: 75, sniper: 70, freelook: 100 },
+                    sniper: { general: 70, reddot: 65, scope2x: 60, scope4x: 55, sniper: 85, freelook: 80 }
+                };
+                
+                const presetValues = values[preset] || values.balanced;
+                
+                // Update values
+                document.getElementById('sens-general-value').textContent = presetValues.general;
+                document.getElementById('sens-reddot-value').textContent = presetValues.reddot;
+                document.getElementById('sens-2x-value').textContent = presetValues.scope2x;
+                document.getElementById('sens-4x-value').textContent = presetValues.scope4x;
+                document.getElementById('sens-sniper-value').textContent = presetValues.sniper;
+                document.getElementById('sens-freelook-value').textContent = presetValues.freelook;
+                
+                // Update slider positions
+                this.updateSliderPosition('sens-general-slider', presetValues.general, 10, 100);
+                this.updateSliderPosition('sens-reddot-slider', presetValues.reddot, 10, 100);
+                this.updateSliderPosition('sens-2x-slider', presetValues.scope2x, 10, 100);
+                this.updateSliderPosition('sens-4x-slider', presetValues.scope4x, 10, 100);
+                this.updateSliderPosition('sens-sniper-slider', presetValues.sniper, 10, 100);
+                this.updateSliderPosition('sens-freelook-slider', presetValues.freelook, 10, 100);
+            }
+
+            updateSliderPosition(sliderId, value, min, max) {
+                const slider = document.getElementById(sliderId);
+                if (!slider) return;
+                
+                const fill = slider.querySelector('.slider-fill');
+                const knob = slider.querySelector('.slider-knob');
+                const position = (value - min) / (max - min);
+                
+                if (fill) fill.style.width = (position * 100) + '%';
+                if (knob) knob.style.right = (100 - position * 100) + '%';
+            }
+
+            loadDeviceInfo() {
+                try {
+                    const session = this.sessionManager.getSession();
+                    const devices = this.sessionManager.getDevices();
+                    const deviceInfo = this.sessionManager.detectDeviceInfo();
+                    
+                    // Update current device display
+                    const currentDeviceElement = document.getElementById('currentDeviceInfo');
+                    if (currentDeviceElement && session) {
+                        currentDeviceElement.innerHTML = `
+                            <div style="font-weight: 600; margin-bottom: 15px; color: var(--accent-red);">
+                                <i class="fas fa-mobile-alt"></i> THIS DEVICE
+                            </div>
+                            <div class="device-row">
+                                <span class="device-label">Device ID:</span>
+                                <span class="device-value">${session.deviceFingerprint.substring(0, 12)}...</span>
+                            </div>
+                            <div class="device-row">
+                                <span class="device-label">Brand:</span>
+                                <span class="device-value">${deviceInfo.brand}</span>
+                            </div>
+                            <div class="device-row">
+                                <span class="device-label">Model:</span>
+                                <span class="device-value">${deviceInfo.model}</span>
+                            </div>
+                            <div class="device-row">
+                                <span class="device-label">OS:</span>
+                                <span class="device-value">${deviceInfo.os}</span>
+                            </div>
+                            <div class="device-row">
+                                <span class="device-label">Browser:</span>
+                                <span class="device-value">${deviceInfo.browser}</span>
+                            </div>
+                            <div class="device-row">
+                                <span class="device-label">Screen:</span>
+                                <span class="device-value">${deviceInfo.screen}</span>
+                            </div>
+                        `;
+                    }
+                    
+                    // Update last backup info
+                    const lastBackup = new Date();
+                    const lastBackupDate = document.getElementById('lastBackupDate');
+                    if (lastBackupDate) {
+                        lastBackupDate.textContent = 
+                            lastBackup.toLocaleDateString() + ', ' + 
+                            lastBackup.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    }
+                    
+                    // Update profile count and storage
+                    const profileCount = document.getElementById('profileCount');
+                    const storageUsed = document.getElementById('storageUsed');
+                    if (profileCount && storageUsed) {
+                        profileCount.textContent = devices.length;
+                        storageUsed.textContent = (devices.length * 0.5).toFixed(1);
+                    }
+                    
+                    // Update synced devices list
+                    const syncedDevicesList = document.getElementById('syncedDevicesList');
+                    if (syncedDevicesList) {
+                        syncedDevicesList.innerHTML = '';
+                        
+                        if (devices.length === 0) {
+                            syncedDevicesList.innerHTML = `
+                                <div style="text-align: center; padding: 20px; color: var(--text-secondary);">
+                                    <i class="fas fa-cloud" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                    <div>No other devices synced</div>
+                                </div>
+                            `;
+                        } else {
+                            devices.forEach(device => {
+                                const lastSync = new Date(device.lastSync);
+                                const timeAgo = this.getTimeAgo(lastSync);
+                                
+                                const deviceElement = document.createElement('div');
+                                deviceElement.style.cssText = `
+                                    display: flex; align-items: center; gap: 15px; 
+                                    padding: 15px; background-color: rgba(30,30,40,0.6); 
+                                    border-radius: var(--border-radius); margin-bottom: 10px;
+                                    ${device.isCurrent ? 'border: 1px solid rgba(255, 0, 60, 0.3);' : ''}
+                                `;
+                                
+                                deviceElement.innerHTML = `
+                                    <i class="fas fa-mobile-alt" style="color: var(--accent-red); font-size: 1.2rem;"></i>
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600;">${device.brand} ${device.model}</div>
+                                        <div style="font-size: 0.9rem; color: var(--text-secondary);">
+                                            ${device.os} • Last sync: ${timeAgo}
+                                            ${device.isCurrent ? ' • <span style="color: var(--accent-green);">Current</span>' : ''}
+                                        </div>
+                                    </div>
+                                    <div style="width: 12px; height: 12px; border-radius: 50%; 
+                                        background-color: ${device.isCurrent ? 'var(--accent-green)' : 'var(--accent-red)'}; 
+                                        box-shadow: 0 0 10px ${device.isCurrent ? 'var(--accent-green)' : 'var(--accent-red)'};">
+                                    </div>
+                                `;
+                                
+                                syncedDevicesList.appendChild(deviceElement);
+                            });
+                        }
+                    }
+                } catch (e) {
+                    console.error('Load device info error:', e);
+                }
+            }
+
+            updateUserInterface() {
+                try {
+                    const session = this.sessionManager.getSession();
+                    
+                    if (session) {
+                        // Update user display name
+                        const userDisplayName = document.getElementById('userDisplayName');
+                        if (userDisplayName) {
+                            userDisplayName.textContent = session.username.toUpperCase();
+                        }
+                        
+                        // Update device ID
+                        const deviceIdDisplay = document.getElementById('deviceIdDisplay');
+                        if (deviceIdDisplay) {
+                            deviceIdDisplay.textContent = session.deviceFingerprint.substring(0, 12) + '...';
+                        }
+                        
+                        // Update subscription end date
+                        const subscriptionEnd = document.getElementById('subscriptionEnd');
+                        if (subscriptionEnd) {
+                            const endDate = new Date();
+                            endDate.setMonth(endDate.getMonth() + 6);
+                            subscriptionEnd.textContent = endDate.toLocaleDateString();
+                        }
+                        
+                        // Update total playtime
+                        const totalPlaytime = document.getElementById('totalPlaytime');
+                        if (totalPlaytime) {
+                            const totalHours = Math.floor(Math.random() * 500);
+                            const totalMinutes = Math.floor(Math.random() * 60);
+                            totalPlaytime.textContent = `${totalHours}h ${totalMinutes}m`;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Update UI error:', e);
+                }
+            }
+
+            uploadToCloud() {
+                this.showNotification('Settings uploaded to cloud successfully!');
+                
+                // Update last backup time
+                const lastBackup = new Date();
+                const lastBackupDate = document.getElementById('lastBackupDate');
+                if (lastBackupDate) {
+                    lastBackupDate.textContent = 
+                        lastBackup.toLocaleDateString() + ', ' + 
+                        lastBackup.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                }
+            }
+
+            downloadFromCloud() {
+                this.showNotification('Settings downloaded from cloud successfully!');
+            }
+
+            getTimeAgo(date) {
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+                
+                if (diffMins < 1) return 'just now';
+                if (diffMins < 60) return `${diffMins}m ago`;
+                if (diffHours < 24) return `${diffHours}h ago`;
+                if (diffDays < 7) return `${diffDays}d ago`;
+                return date.toLocaleDateString();
+            }
+
+            showNotification(message) {
+                // Remove existing notifications
+                document.querySelectorAll('.app-notification').forEach(n => n.remove());
+                
+                const notification = document.createElement('div');
+                notification.className = 'app-notification';
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background-color: rgba(10, 10, 15, 0.95);
+                    color: white;
+                    padding: 20px 30px;
+                    border-radius: 12px;
+                    border: 1px solid rgba(255, 0, 60, 0.5);
+                    box-shadow: 0 0 30px rgba(255, 0, 60, 0.3);
+                    z-index: 100000;
+                    font-weight: 600;
+                    text-align: center;
+                    min-width: 250px;
+                    backdrop-filter: blur(10px);
+                    animation: fadeInOut 2s ease-in-out;
+                    pointer-events: none;
+                `;
+                
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes fadeInOut {
+                        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                        15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                        85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                        100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                    if (style.parentNode) {
+                        style.remove();
+                    }
+                }, 2000);
+            }
+
+            initGlitchEffect() {
+                setInterval(() => {
+                    if (Math.random() < 0.005) { // Reduced frequency
+                        const container = document.querySelector('.main-container');
+                        if (container) {
+                            container.style.filter = 'hue-rotate(90deg)';
+                            setTimeout(() => {
+                                container.style.filter = 'none';
+                            }, 50);
+                        }
+                    }
+                }, 5000);
+            }
+        }
+
+        // ====== INITIALIZE APPLICATION ======
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize the application
+            const app = new WERXitersApp();
+            
+            // Make app globally accessible for debugging
+            window.WERXitersApp = app;
+            
+            // Prevent context menu on long press
+            document.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+            });
+            
+            // Prevent zoom on double tap
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', (e) => {
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300) {
+                    e.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
+        });
+    </script>
+</body>
+</html>
