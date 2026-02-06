@@ -1,0 +1,12 @@
+{
+  "background_color": "rgb(0, 0, 0)",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "WERXITERS",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "WER XITERS",
+  "start_url": "/",
+  "theme_color": "#ffffff",
+  "description": "panel game"
+}
